@@ -2,332 +2,275 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Quiz Escolar — App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Quiz Escolar 🎓</title>
 <style>
-/* ===========================
-   Estilos gerais / iPhone13
-   ===========================
-   iPhone 13 logical size: 390x844 (DPR 3)
-   This layout targets a vertical app-like UX.
-*/
-:root{
-  --bg:#000;
-  --card-bg: rgba(0,0,0,0.55);
-  --accent:#00ffcc;
-  --good:#00ff99;
-  --bad:#ff7b7b;
-  --glass: rgba(255,255,255,0.04);
-  --glass-2: rgba(255,255,255,0.06);
-  --text:#fff;
-  --radius:14px;
-  --gap:12px;
-  --touch:56px; /* preferred touch target */
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-  --font: "Comic Sans MS", Arial, sans-serif;
-}
+  /* ---------- RESET & BASE ---------- */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    padding:0;
+    font-family:"Comic Sans MS", Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-color:#000;
+    color:#fff;
+    overscroll-behavior-y:contain;
+  }
 
-/* Reset */
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  font-family:var(--font);
-  background:var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow:hidden;
-}
+  /* ----- CONTAINER (center) ----- */
+  .app {
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+  }
 
-/* ---------- Tela inicial full-screen ---------- */
-#tela-inicial{
-  position:fixed; inset:0;
-  background-image: url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/inico%20de%20tela.png');
-  background-size:cover; background-position:center;
-  display:flex; align-items:center; justify-content:center;
-  transition:opacity .45s ease;
-  z-index:10;
-  padding-top: calc(var(--safe-top) + 10px);
-}
-#particles{ position:fixed; inset:0; pointer-events:none; z-index:11; }
+  /* ---------- TELA INICIAL ---------- */
+  #tela-inicial{
+    position:fixed;
+    inset:0;
+    background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/inico%20de%20tela.png');
+    background-size:cover;
+    background-position:center;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:opacity .4s ease;
+  }
+  #start-btn{
+    appearance:none;
+    -webkit-appearance:none;
+    border:none;
+    background:linear-gradient(180deg,#0b7f8f,#006d74);
+    color:white;
+    font-weight:800;
+    font-size:20px;
+    padding:14px 26px;
+    border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.6);
+    cursor:pointer;
+  }
+  #start-btn:active{transform:translateY(1px) scale(.998)}
+  #particles{ position:fixed; inset:0; pointer-events:none; z-index:4; }
 
-/* Start button (app style) */
-#start-btn{
-  position:relative;
-  z-index:12;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  border:2px solid rgba(255,255,255,0.08);
-  padding:14px 34px;
-  border-radius:28px;
-  font-size:20px;
-  color:var(--text);
-  cursor:pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
-}
-#start-btn:active{ transform:translateY(2px) }
+  /* ---------- QUIZ LAYOUT (MOBILE-FIRST) ---------- */
+  .quiz-container{
+    width:100%;
+    max-width:420px; /* muito próximo do iPhone13 lógico 390 */
+    margin:0 auto;
+    background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.45));
+    border-radius:18px;
+    padding:14px;
+    display:none;
+    flex-direction:column;
+    gap:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.7);
+    position:relative;
+    z-index:2;
+  }
 
-/* ---------- App container ---------- */
-.app {
-  position:fixed; inset:0;
-  display:flex; flex-direction:column; align-items:center;
-  padding: calc(var(--safe-top) + 8px) 12px calc(var(--safe-bottom) + 12px);
-  gap:12px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.18));
-  z-index:5;
-  overflow:hidden;
-}
+  .top-row{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
 
-/* Header (professora + title) */
-.header {
-  width:100%;
-  display:flex; align-items:center; justify-content:center;
-  gap:12px;
-}
-.professor {
-  width:120px; height:150px;
-  background-size:contain; background-repeat:no-repeat; background-position:bottom center;
-  border-radius:12px;
-  flex-shrink:0;
-  transition:transform .25s ease;
-}
-.title {
-  flex:1;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
-  letter-spacing:0.4px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-}
+  /* professora ao lado / mobile otimizado: professora em cima em telas muito pequenas */
+  .professor{
+    flex:0 0 120px;
+    height:150px;
+    background-repeat:no-repeat;
+    background-position:bottom center;
+    background-size:contain;
+    border-radius:12px;
+    align-self:flex-start;
+  }
 
-/* Main card (quadro) - centered and touch-friendly */
-.card {
-  width:100%;
-  max-width:390px; /* match iPhone 13 logical width */
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius: 18px;
-  padding:16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.04);
-  display:flex; flex-direction:column; align-items:center; gap:12px;
-}
+  /* quadro ocupa a maior parte */
+  .quadro-fundo{
+    flex:1 1 auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:12px;
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap:10px;
+  }
+  #question{ font-size:18px; line-height:1.25; margin:0; min-height:48px; }
 
-/* pergunta */
-#question {
-  width:100%;
-  font-size:18px;
-  line-height:1.25;
-  text-align:center;
-  padding:8px 6px;
-  min-height:56px;
-  color:var(--text);
-}
+  /* respostas (botões grandes e touch-friendly) */
+  #answers{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  #answers button{
+    appearance:none; -webkit-appearance:none;
+    border:2px solid rgba(255,255,255,0.14);
+    background:rgba(255,255,255,0.02);
+    color:#fff;
+    padding:14px 12px;
+    font-size:16px;
+    border-radius:12px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  #answers button:hover{ transform:translateY(-2px) }
+  #answers button:active{ transform:translateY(0) scale(.998) }
+  #answers button:disabled{ opacity:.55; cursor:not-allowed; transform:none }
 
-/* alternativas - stacked, touch targets bigger */
-#answers{ width:100%; display:flex; flex-direction:column; gap:10px; }
-.answer {
-  width:100%;
-  height: var(--touch);
-  display:flex; align-items:center; justify-content:center;
-  background:var(--glass);
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.06);
-  color:var(--text);
-  font-size:16px;
-  padding:8px 12px;
-  cursor:pointer;
-  transition:transform .12s ease, box-shadow .12s ease;
-  user-select:none;
-}
-.answer:active{ transform:translateY(1px) }
-.answer.disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
-.answer.selected{ box-shadow:0 6px 18px rgba(0,0,0,0.6); }
-.answer.correct{ color:var(--good); border-color: rgba(0,255,153,0.18); font-weight:700; }
-.answer.wrong{ color:var(--bad); border-color: rgba(255,123,123,0.12); font-weight:700; }
+  /* classes visuais para selecionada/correta/errada */
+  #answers button.selecionada{ box-shadow:0 6px 18px rgba(255,255,255,0.06); }
+  #answers button.correta{ border-color:#00ff99; color:#00ff99; font-weight:700; background:rgba(0,255,153,0.03) }
+  #answers button.errada{ border-color:#ff9999; color:#ff9999; font-weight:700; background:rgba(255,153,153,0.02) }
 
-/* feedback */
-.feedback { min-height:20px; font-size:17px; margin-top:6px; }
+  /* feedback */
+  .feedback{ min-height:28px; font-size:18px; font-weight:700; margin-top:6px; text-shadow:0 1px 2px rgba(0,0,0,0.6) }
+  .feedback.correct{ color:#00ff99 }
+  .feedback.wrong{ color:#ff9999 }
 
-/* controls row */
-.controls {
-  width:100%;
-  max-width:390px;
-  display:flex; justify-content:space-between; gap:8px;
-  margin-top:6px;
-}
-.control-btn {
-  flex:1;
-  height:48px;
-  border-radius:12px;
-  background:var(--glass);
-  border:1px solid rgba(255,255,255,0.04);
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  font-weight:600;
-  user-select:none;
-}
+  /* controles inferiores (avançar/voltar/terminar) */
+  .controls{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:6px;
+  }
+  .controls button{
+    flex:1;
+    background:rgba(255,255,255,0.03);
+    border:2px solid rgba(255,255,255,0.06);
+    color:#fff;
+    padding:12px 10px;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;
+  }
+  .controls button:disabled{ opacity:.45; cursor:not-allowed }
 
-/* pequeno painel do professor (login/cadastro) */
-.prof-panel {
-  position:fixed; left:50%; transform:translateX(-50%);
-  top:8px;
-  width:320px; max-width:94vw;
-  background: rgba(0,0,0,0.6);
-  border-radius:12px; padding:8px;
-  display:flex; gap:8px; align-items:center; z-index:40;
-  border:1px solid rgba(255,255,255,0.04);
-}
-.prof-panel input{ padding:8px; border-radius:8px; border:none; width:65%; background:rgba(255,255,255,0.02); color:var(--text); }
-.prof-panel button{ padding:8px 10px; border-radius:8px; border:none; cursor:pointer; background:var(--accent); color:#000; font-weight:700; }
+  /* painel do professor (cadastro) - botão simples flutuante */
+  #professor-login{ position:fixed; top:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); padding:8px; border-radius:12px; z-index:10; display:flex; gap:8px; align-items:center; }
+  #professor-login input{ padding:8px; border-radius:8px; border:none; outline:none; width:120px }
+  #cadastro-perguntas{ position:fixed; left:50%; top:60px; transform:translateX(-50%); width:340px; max-height:66vh; overflow:auto; background:rgba(0,0,0,0.75); padding:12px; border-radius:12px; display:none; z-index:12 }
+  #cadastro-perguntas input, #cadastro-perguntas select{ width:100%; padding:8px; margin:6px 0; border-radius:8px; border:none }
 
-/* cadastro painel (popup) */
-#cadastro-perguntas {
-  position:fixed; top:56px; left:50%; transform:translateX(-50%);
-  width:320px; max-width:94vw;
-  background: rgba(0,0,0,0.75);
-  border-radius:12px; padding:12px;
-  z-index:50;
-  display:none; flex-direction:column; gap:8px;
-  border:1px solid rgba(255,255,255,0.04);
-}
-#cadastro-perguntas input, #cadastro-perguntas select { padding:10px; border-radius:8px; border:none; background:rgba(255,255,255,0.02); color:var(--text); width:100%; }
+  #btn-sair-edicao{ position:fixed; right:12px; top:12px; background:#ff4444; border:none; color:#fff; padding:8px 12px; border-radius:10px; display:none; z-index:11; }
 
-/* tela final */
-#tela-fim {
-  position:fixed; inset:0; z-index:70;
-  display:flex; align-items:center; justify-content:center;
-  background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9));
-  color:var(--text);
-}
+  /* pequenas melhorias para iPhone 13 (largura lógica 390) */
+  @media (min-width:360px) and (max-width:430px){
+    .quiz-container{ padding:12px; border-radius:14px; max-width:390px }
+    .professor{ flex:0 0 110px; height:140px }
+    #question{ font-size:18px }
+    #answers button{ padding:13px; font-size:16px; border-radius:12px }
+    .controls button{ padding:12px; font-size:15px }
+  }
 
-/* Responsividade extra small */
-@media (max-width:400px){
-  .professor{ width:100px; height:130px }
-  .title{ font-size:18px }
-  .card{ padding:12px }
-  #question{ font-size:16px }
-  .answer{ height:50px; font-size:15px }
-  .controls{ gap:6px }
-  .control-btn{ height:44px; font-size:14px }
-}
+  /* Em telas maiores (tablet/desktop) mantemos estilo porém com mais espaço */
+  @media (min-width:900px){
+    .app{ padding:40px }
+    .quiz-container{ max-width:920px; display:flex; gap:18px; padding:18px; flex-direction:row; align-items:flex-start }
+    .top-row{ flex-direction:row }
+    .professor{ flex:0 0 300px; height:420px; background-size:contain; }
+    .quadro-fundo{ min-height:420px; }
+    #answers{ gap:14px }
+    #answers button{ font-size:18px; padding:16px 18px; width:420px }
+    .controls{ margin-top:18px }
+  }
 
-/* -------- Compact mode (fidelity to original) --------
-   If you later want "fiel ao tamanho original", add the class .compact to body
-   and tweak sizes (kept commented for quick reference).
-*/
-/*
-body.compact .professor { width:140px; height:180px; }
-body.compact .card { max-width:600px; border-radius:14px; }
-body.compact .answer { height:48px; font-size:18px; }
-*/
+  /* utility */
+  .hidden{ display:none !important }
 </style>
 </head>
 <body>
-
-<!-- Tela inicial -->
-<div id="tela-inicial">
-  <canvas id="particles"></canvas>
-  <button id="start-btn">COMEÇAR</button>
-</div>
-
-<!-- App main -->
-<div class="app" id="app" style="display:none;">
-
-  <!-- professor header + title -->
-  <div class="header">
-    <div class="professor" id="professor" style="background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png')"></div>
-    <div class="title">Quiz Escolar 🎓</div>
+  <div id="tela-inicial">
+    <canvas id="particles"></canvas>
+    <button id="start-btn">COMEÇAR</button>
   </div>
 
-  <!-- Card (quadro) -->
-  <div class="card" role="main" aria-live="polite">
-    <div id="question" aria-label="Pergunta">...</div>
-    <div id="answers" aria-label="Alternativas"></div>
-    <div id="feedback" class="feedback" aria-hidden="true"></div>
+  <!-- painel professor (pequeno) -->
+  <div id="professor-login">
+    <input id="senha-professor" type="password" placeholder="Senha professor" />
+    <button id="btn-entrar">Entrar</button>
   </div>
 
-  <!-- Controls -->
-  <div class="controls" style="max-width:390px;">
-    <div class="control-btn" id="btn-voltar">◀ Voltar</div>
-    <div class="control-btn" id="btn-avancar">Avançar ▶</div>
-    <div class="control-btn" id="btn-terminar">Terminar</div>
+  <div id="cadastro-perguntas" aria-hidden="true">
+    <h3 style="margin:6px 0 10px 0">Adicionar Pergunta</h3>
+    <input id="nova-pergunta" placeholder="Pergunta" />
+    <input id="alt1" placeholder="Alternativa 1" />
+    <input id="alt2" placeholder="Alternativa 2" />
+    <input id="alt3" placeholder="Alternativa 3" />
+    <select id="certa">
+      <option value="0">Alternativa 1</option>
+      <option value="1">Alternativa 2</option>
+      <option value="2">Alternativa 3</option>
+    </select>
+    <button id="btn-adicionar">Adicionar Pergunta</button>
   </div>
 
-</div>
+  <button id="btn-sair-edicao">SAIR</button>
 
-<!-- professor login panel -->
-<div class="prof-panel" id="prof-panel">
-  <input id="senha-professor" type="password" placeholder="Senha professor" />
-  <button id="entrar-prof">Entrar</button>
-</div>
+  <div class="app">
+    <main class="quiz-container" id="quiz">
+      <div class="top-row" style="width:100%">
+        <div class="professor" id="professor" aria-hidden="true" ></div>
 
-<!-- cadastro perguntas (popup) -->
-<div id="cadastro-perguntas">
-  <h4 style="margin:0 0 4px 0">Adicionar Pergunta</h4>
-  <input id="nova-pergunta" placeholder="Pergunta" />
-  <input id="alt1" placeholder="Alternativa 1" />
-  <input id="alt2" placeholder="Alternativa 2" />
-  <input id="alt3" placeholder="Alternativa 3" />
-  <select id="certa">
-    <option value="0">Alternativa 1</option>
-    <option value="1">Alternativa 2</option>
-    <option value="2">Alternativa 3</option>
-  </select>
-  <button id="btn-add">Adicionar</button>
-  <button id="btn-fechar" style="margin-top:6px;background:#ff6666;color:#000;font-weight:700">Fechar</button>
-</div>
+        <div class="quadro-fundo" role="region" aria-label="Quadro de perguntas">
+          <div id="question" aria-live="polite"></div>
+          <div id="answers" role="list"></div>
+          <div class="feedback" id="feedback" aria-live="assertive"></div>
 
-<!-- tela fim placeholder (aparecerá via JS) -->
-<div id="tela-fim" style="display:none;"></div>
+          <div class="controls" style="margin-top:8px">
+            <button id="btn-voltar">◀ Voltar</button>
+            <button id="btn-avancar">Avançar ▶</button>
+            <button id="btn-terminar" style="flex:0 0 120px; background:#0b7f8f; border:none">Terminar</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
 <script>
-/* ===========================
-   JavaScript — App logic
-   =========================== */
-
-/* Partículas (leve) */
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-let mouse = {x:null,y:null};
-window.addEventListener('mousemove', e=> { mouse.x = e.clientX; mouse.y = e.clientY; });
+/* ================= PARTICULAS (leve) ================= */
+const canvas = document.getElementById('particles'), ctx = canvas.getContext('2d');
+function fitCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+fitCanvas(); window.addEventListener('resize', fitCanvas);
+let mouse = {x:-9999, y:-9999};
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
 class Particle {
   constructor(){
     this.x = Math.random()*canvas.width;
     this.y = Math.random()*canvas.height;
-    this.r = Math.random()*1.8 + 0.6;
+    this.r = Math.random()*1.6 + 0.6;
     this.vx = (Math.random()-0.5)*0.3;
     this.vy = (Math.random()-0.5)*0.3;
-    this.alpha = Math.random()*0.5 + 0.15;
+    this.alpha = Math.random()*0.6 + 0.2;
   }
-  update(){
+  move(){
     this.x += this.vx; this.y += this.vy;
     if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
     if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
-    // mouse interaction
-    if(mouse.x && mouse.y){
-      const dx = mouse.x - this.x; const dy = mouse.y - this.y;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if(d < 120){ this.alpha = Math.min(1, 0.5 + (120-d)/240); }
-      else this.alpha = Math.max(0.15, this.alpha*0.995);
-    }
   }
-  draw(){ ctx.fillStyle = `rgba(255,255,200,${this.alpha})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); }
+  draw(){
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255,255,200,${this.alpha})`;
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fill();
+  }
 }
-const parts = Array.from({length:60}, ()=> new Particle());
+const particles = Array.from({length:48}, ()=> new Particle());
 function animParticles(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  parts.forEach(p=>{ p.update(); p.draw(); });
+  for(const p of particles){ p.move(); p.draw(); }
   requestAnimationFrame(animParticles);
 }
 animParticles();
 
-/* Assets & state */
+/* ================= IMAGENS & ELEMENTOS ================= */
 const imgFrames = [
   "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png",
   "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%202.png",
@@ -336,292 +279,280 @@ const imgFrames = [
 const imgCerta = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/joinhaa.png";
 const imgErrada = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/errada.png";
 
-let perguntas = []; // array of {pergunta, opcoes:[...], certa: index}
-let indice = 0;
-let pontuacao = 0;
-let perguntasRespondidas = {}; // { idx: {choice, correct} }
-
-// DOM refs
-const appEl = document.getElementById('app');
 const startBtn = document.getElementById('start-btn');
 const telaInicial = document.getElementById('tela-inicial');
+const quizEl = document.getElementById('quiz');
 const professorEl = document.getElementById('professor');
 const questionEl = document.getElementById('question');
 const answersEl = document.getElementById('answers');
 const feedbackEl = document.getElementById('feedback');
-const btnVoltar = document.getElementById('btn-voltar');
+
 const btnAvancar = document.getElementById('btn-avancar');
+const btnVoltar  = document.getElementById('btn-voltar');
 const btnTerminar = document.getElementById('btn-terminar');
 
-const profPanel = document.getElementById('prof-panel');
-const entrarProf = document.getElementById('entrar-prof');
-const cadastro = document.getElementById('cadastro-perguntas');
-const btnAdd = document.getElementById('btn-add');
-const btnFechar = document.getElementById('btn-fechar');
+/* ============== ESTADO ============== */
+let perguntas = [];           // array de perguntas {pergunta, opcoes:[], certa}
+let indice = 0;
+let pontuacao = 0;
+let escreverVelocidade = 40;
+let perguntasRespondidas = {}; // { indice: { choice: n, correct: bool } }
 
-const senhaInput = document.getElementById('senha-professor');
-const novaPerguntaInput = document.getElementById('nova-pergunta');
-const alt1 = document.getElementById('alt1');
-const alt2 = document.getElementById('alt2');
-const alt3 = document.getElementById('alt3');
-const selectCerta = document.getElementById('certa');
-
-/* Load saved perguntas from localStorage */
+/* ============== UTIL: salvar / carregar perguntas ============== */
+function salvarPerguntas(){
+  try{ localStorage.setItem('perguntasQuiz', JSON.stringify(perguntas)); }catch(e){}
+}
 function carregarPerguntas(){
-  try {
+  try{
     const raw = localStorage.getItem('perguntasQuiz');
     if(raw) perguntas = JSON.parse(raw);
-  } catch(e){ perguntas = []; }
-  // if no perguntas, we can seed sample ones (optional)
-  if(!perguntas || perguntas.length === 0){
-    // example seed (comment out if you don't want)
-    perguntas = [
-      { pergunta: "Qual é a capital do Brasil?", opcoes:["São Paulo","Brasília","Rio"], certa:1 },
-      { pergunta: "2 + 2 = ?", opcoes:["3","4","5"], certa:1 }
-    ];
-    localStorage.setItem('perguntasQuiz', JSON.stringify(perguntas));
-  }
+  }catch(e){ perguntas = []; }
 }
 carregarPerguntas();
 
-/* Save perguntas */
-function salvarPerguntas(){ localStorage.setItem('perguntasQuiz', JSON.stringify(perguntas)); }
+/* ============== PAINEL PROFESSOR ============== */
+const btnEntrar = document.getElementById('btn-entrar');
+const boxCadastro = document.getElementById('cadastro-perguntas');
+const btnAdicionar = document.getElementById('btn-adicionar');
+const btnSair = document.getElementById('btn-sair-edicao');
 
-/* professor login */
-entrarProf.addEventListener('click', ()=>{
-  if(senhaInput.value === "2702"){
-    cadastro.style.display = "flex";
-    profPanel.style.display = "none";
-  } else alert("Senha incorreta");
+btnEntrar.addEventListener('click', ()=>{
+  const senha = document.getElementById('senha-professor').value;
+  if(senha === '2702'){
+    boxCadastro.style.display = 'block';
+    btnSair.style.display = 'block';
+    document.getElementById('professor-login').style.display = 'none';
+  } else alert('Senha incorreta');
 });
-btnFechar.addEventListener('click', ()=>{ cadastro.style.display='none'; profPanel.style.display='flex'; });
-
-btnAdd.addEventListener('click', ()=>{
-  const p = novaPerguntaInput.value.trim();
-  const o1 = alt1.value.trim();
-  const o2 = alt2.value.trim();
-  const o3 = alt3.value.trim();
-  const c = parseInt(selectCerta.value);
-  if(!p || !o1 || !o2 || !o3) return alert('Preencha todos os campos');
-  perguntas.push({ pergunta: p, opcoes: [o1,o2,o3], certa: c });
-  salvarPerguntas();
-  novaPerguntaInput.value=''; alt1.value=''; alt2.value=''; alt3.value='';
-  alert('Pergunta adicionada');
+btnSair.addEventListener('click', ()=>{
+  boxCadastro.style.display = 'none';
+  btnSair.style.display = 'none';
+  document.getElementById('professor-login').style.display = 'flex';
+  document.getElementById('senha-professor').value = '';
 });
 
-/* Write text animation (professora) */
-let writeInterval = null;
-function escreverNoQuadro(el, texto, speed = 40){
-  el.textContent = "";
-  if(writeInterval) clearInterval(writeInterval);
+/* Adicionar pergunta */
+btnAdicionar.addEventListener('click', ()=>{
+  const p = document.getElementById('nova-pergunta').value.trim();
+  const a1 = document.getElementById('alt1').value.trim();
+  const a2 = document.getElementById('alt2').value.trim();
+  const a3 = document.getElementById('alt3').value.trim();
+  const c = parseInt(document.getElementById('certa').value);
+  if(!p || !a1 || !a2 || !a3){ return alert('Preencha todos os campos!'); }
+  perguntas.push({pergunta:p, opcoes:[a1,a2,a3], certa:c});
+  document.getElementById('nova-pergunta').value='';
+  document.getElementById('alt1').value=''; document.getElementById('alt2').value=''; document.getElementById('alt3').value='';
+  salvarPerguntas(); atualizarCadastro();
+});
+
+/* Atualiza lista no painel professor (simples) */
+function atualizarCadastro(){
+  // limpa e recria
+  const box = document.getElementById('cadastro-perguntas');
+  box.querySelectorAll('.pergunta-item')?.forEach(x=>x.remove());
+  perguntas.forEach((p,i)=>{
+    const d = document.createElement('div');
+    d.className = 'pergunta-item';
+    d.style.border = '1px solid rgba(255,255,255,0.08)';
+    d.style.padding = '6px';
+    d.style.margin = '6px 0';
+    d.style.borderRadius = '8px';
+    d.style.cursor = 'pointer';
+    d.textContent = `${i+1}. ${p.pergunta}`;
+    d.addEventListener('click', ()=>{
+      document.getElementById('nova-pergunta').value = p.pergunta;
+      document.getElementById('alt1').value = p.opcoes[0];
+      document.getElementById('alt2').value = p.opcoes[1];
+      document.getElementById('alt3').value = p.opcoes[2];
+      document.getElementById('certa').value = p.certa;
+      perguntas.splice(i,1);
+      salvarPerguntas(); atualizarCadastro();
+    });
+    box.appendChild(d);
+  });
+}
+atualizarCadastro();
+
+/* ============== HELPERS: escrever no quadro ============== */
+let escreverInterval = null;
+function escreverNoQuadro(el, texto){
   return new Promise(resolve=>{
-    let i=0, frame = 0;
-    writeInterval = setInterval(()=>{
-      el.textContent += texto[i] ?? "";
-      // animate professor frames
-      professorEl.style.backgroundImage = `url(${imgFrames[frame])}`;
-      frame = (frame + 1) % imgFrames.length;
+    if(escreverInterval) clearInterval(escreverInterval);
+    el.textContent = '';
+    let i=0, frameIndex=0;
+    escreverInterval = setInterval(()=>{
+      el.textContent += texto[i] || '';
+      // anima professora trocando frames
+      professorEl.style.backgroundImage = `url(${imgFrames[frameIndex]})`;
+      frameIndex = (frameIndex+1) % imgFrames.length;
       i++;
-      if(i >= texto.length){
-        clearInterval(writeInterval);
-        writeInterval = null;
+      if(i>=texto.length){
+        clearInterval(escreverInterval);
+        escreverInterval = null;
         professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
         resolve();
       }
-    }, speed);
+    }, escreverVelocidade);
   });
 }
 
-/* Render current question */
+/* ============== RENDER: mostrarPergunta ============== */
 async function mostrarPergunta(){
-  if(!perguntas || perguntas.length === 0) {
-    questionEl.textContent = "Nenhuma pergunta cadastrada.";
-    answersEl.innerHTML = "";
-    return;
-  }
+  if(!perguntas.length){ questionEl.textContent = 'Sem perguntas. Entre com o professor.'; answersEl.innerHTML=''; feedbackEl.textContent=''; return; }
   const q = perguntas[indice];
-  answersEl.innerHTML = "";
-  feedbackEl.textContent = "";
-  // animate writing
-  await escreverNoQuadro(questionEl, q.pergunta, 28);
+  answersEl.innerHTML = '';
+  feedbackEl.textContent = '';
+  // escreve a pergunta
+  await escreverNoQuadro(questionEl, q.pergunta);
 
-  // build answer buttons
-  q.opcoes.forEach((opt, idx)=>{
-    const btn = document.createElement('button');
-    btn.className = 'answer';
-    btn.textContent = opt;
-    btn.dataset.idx = idx;
-    // if answered before -> disable and show selection
-    const resp = perguntasRespondidas[indice];
-    if(resp){
-      btn.classList.add('disabled');
-      btn.disabled = true;
-      if(resp.choice === idx){
-        btn.classList.add('selected');
-        btn.classList.add(resp.correct ? 'correct' : 'wrong');
+  // cria botoes
+  q.opcoes.forEach((op,i)=>{
+    const b = document.createElement('button');
+    b.type='button';
+    b.textContent = op;
+    b.dataset.index = i;
+    // se já respondeu essa pergunta
+    const saved = perguntasRespondidas[indice];
+    if(saved){
+      b.disabled = true;
+      if(saved.choice == i){
+        b.classList.add('selecionada');
+        if(saved.correct) b.classList.add('correta'); else b.classList.add('errada');
       }
     } else {
-      btn.addEventListener('click', ()=> checkAnswer(idx === q.certa, idx) );
+      b.addEventListener('click', ()=> checkAnswer(i === q.certa, i) );
     }
-    answersEl.appendChild(btn);
+    answersEl.appendChild(b);
   });
 
-  // show feedback if previously answered
-  const salvo = perguntasRespondidas[indice];
-  if(salvo){
-    if(salvo.correct){
-      feedbackEl.textContent = "Muito bem!";
-      feedbackEl.className = "feedback";
-      feedbackEl.style.color = "#00ff99";
+  // mostra feedback se já respondida
+  const sav = perguntasRespondidas[indice];
+  if(sav){
+    if(sav.correct){
+      feedbackEl.textContent = 'Muito bem!'; feedbackEl.className = 'feedback correct';
       professorEl.style.backgroundImage = `url(${imgCerta})`;
     } else {
-      feedbackEl.textContent = "Tente novamente!";
-      feedbackEl.className = "feedback";
-      feedbackEl.style.color = "#ff7b7b";
+      feedbackEl.textContent = 'Tente novamente!'; feedbackEl.className = 'feedback wrong';
       professorEl.style.backgroundImage = `url(${imgErrada})`;
     }
   } else {
-    feedbackEl.textContent = "";
+    feedbackEl.textContent = ''; feedbackEl.className = 'feedback';
     professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
   }
-
-  // accessibility focus on first answer
-  const firstBtn = answersEl.querySelector('button:not([disabled])');
-  if(firstBtn) firstBtn.setAttribute('tabindex', '0');
 }
 
-/* Handle answer click */
-function checkAnswer(isCorrect, choiceIndex){
-  perguntasRespondidas[indice] = { choice: choiceIndex, correct: isCorrect };
-  // disable current buttons
-  const btns = answersEl.querySelectorAll('button.answer');
-  btns.forEach(b => { b.disabled = true; b.classList.add('disabled'); });
+/* ============== checkAnswer ============== */
+function desativarRespostasAtuais(){
+  answersEl.querySelectorAll('button').forEach(b=> b.disabled = true);
+}
 
-  // mark selection visually
-  btns.forEach(b=>{
-    const idx = parseInt(b.dataset.idx);
+function checkAnswer(certa, choiceIndex){
+  perguntasRespondidas[indice] = { choice: choiceIndex, correct: certa };
+  desativarRespostasAtuais();
+
+  // marca visualmente
+  answersEl.querySelectorAll('button').forEach(b=>{
+    const idx = Number(b.dataset.index);
     if(idx === choiceIndex){
-      b.classList.add('selected');
-      if(isCorrect) b.classList.add('correct');
-      else b.classList.add('wrong');
+      b.classList.add('selecionada');
+      if(certa) b.classList.add('correta'); else b.classList.add('errada');
     }
   });
 
-  // feedback and animation
-  if(isCorrect){
+  if(certa){
     pontuacao++;
-    feedbackEl.textContent = "Muito bem!";
-    feedbackEl.style.color = "#00ff99";
+    feedbackEl.textContent = 'Muito bem!'; feedbackEl.className = 'feedback correct';
     professorEl.style.backgroundImage = `url(${imgCerta})`;
-    professorEl.style.transform = "translateY(-6px)";
-    setTimeout(()=> professorEl.style.transform = "", 600);
+    professorEl.style.animation = 'none';
+    setTimeout(()=> professorEl.style.animation = '', 700);
   } else {
-    feedbackEl.textContent = "Tente novamente!";
-    feedbackEl.style.color = "#ff7b7b";
+    feedbackEl.textContent = 'Tente novamente!'; feedbackEl.className = 'feedback wrong';
     professorEl.style.backgroundImage = `url(${imgErrada})`;
-    professorEl.style.transform = "translateX(-6px)";
-    setTimeout(()=> professorEl.style.transform = "", 550);
+    professorEl.style.animation = 'none';
+    setTimeout(()=> professorEl.style.animation = '', 500);
   }
 }
 
-/* Navigation */
-btnAvancar.addEventListener('click', ()=>{
-  if(indice < perguntas.length - 1){
-    indice++;
-    mostrarPergunta();
-  }
-});
-btnVoltar.addEventListener('click', ()=>{
-  if(indice > 0){
-    indice--;
-    mostrarPergunta();
-  }
-});
-btnTerminar.addEventListener('click', mostrarFim);
-
-/* Show finish */
-function mostrarFim(){
-  appEl.style.display = 'none';
-  const fim = document.getElementById('tela-fim');
-  fim.innerHTML = '';
-  fim.style.display = 'flex';
-  fim.style.flexDirection = 'column';
-  fim.style.alignItems = 'center';
-  fim.style.justifyContent = 'center';
-  fim.style.gap = '12px';
-  fim.innerHTML = `<div style="font-size:22px;font-weight:700">Quiz finalizado!</div>
-                   <div style="font-size:18px">Acertos: <b>${pontuacao} de ${perguntas.length}</b></div>`;
-  if(pontuacao === perguntas.length){
-    const img = document.createElement('img');
-    img.src = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-14%20003933.png";
-    img.style.width = '180px';
-    fim.appendChild(img);
-    const t = document.createElement('div');
-    t.innerHTML = "<b>Você foi 10!</b>";
-    t.style.fontSize = '20px';
-    fim.appendChild(t);
-  }
-  const btn = document.createElement('button');
-  btn.textContent = 'Reiniciar';
-  btn.style.marginTop = '14px';
-  btn.style.padding = '10px 18px';
-  btn.style.borderRadius = '12px';
-  btn.style.border = 'none';
-  btn.style.fontWeight = '700';
-  btn.onclick = () => {
-    fim.style.display = 'none';
-    resetarJogo();
-  };
-  fim.appendChild(btn);
-}
-
-/* Reset */
-function resetarJogo(){
-  perguntasRespondidas = {};
-  indice = 0; pontuacao = 0;
-  appEl.style.display = 'flex';
-  mostrarPergunta();
-}
-
-/* Start app */
+/* ============== START / NAV / END ============== */
 startBtn.addEventListener('click', ()=>{
+  if(perguntas.length === 0) return alert('Adicione pelo menos uma pergunta no painel do professor.');
   telaInicial.style.opacity = 0;
-  setTimeout(()=> telaInicial.style.display = 'none', 420);
-  appEl.style.display = 'flex';
-  // set up initial professor image
+  setTimeout(()=> telaInicial.style.display = 'none', 260);
+  quizEl.style.display = 'flex';
   professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
   mostrarPergunta();
 });
 
-/* ESC to close professor panel (like previous behavior) */
-document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape'){
-    cadastro.style.display = 'none';
-    profPanel.style.display = 'flex';
+btnAvancar.addEventListener('click', ()=>{
+  if(indice < perguntas.length - 1){ indice++; mostrarPergunta(); }
+});
+btnVoltar.addEventListener('click', ()=>{
+  if(indice > 0){ indice--; mostrarPergunta(); }
+});
+btnTerminar.addEventListener('click', mostrarFim);
+
+/* ============== MOSTRAR FIM ============== */
+function mostrarFim(){
+  quizEl.style.display = 'none';
+  const fim = document.createElement('div');
+  fim.style.position = 'fixed';
+  fim.style.inset = 0;
+  fim.style.display = 'flex';
+  fim.style.flexDirection = 'column';
+  fim.style.justifyContent = 'center';
+  fim.style.alignItems = 'center';
+  fim.style.background = "linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.9))";
+  fim.style.color = '#fff';
+  fim.style.zIndex = 9999;
+  fim.innerHTML = `<div style="font-size:20px; text-align:center">Quiz finalizado!<br><b>${pontuacao} de ${perguntas.length}</b></div>`;
+
+  const bt = document.createElement('button');
+  bt.textContent = 'Reiniciar';
+  bt.style.marginTop = '20px';
+  bt.style.padding = '12px 18px';
+  bt.style.borderRadius = '12px';
+  bt.style.border = 'none';
+  bt.style.background = '#0b7f8f';
+  bt.style.color = '#fff';
+  bt.addEventListener('click', ()=>{
+    document.body.removeChild(fim);
+    resetarJogo();
+  });
+  fim.appendChild(bt);
+  document.body.appendChild(fim);
+}
+
+/* ============== RESETAR ============== */
+function resetarJogo(){
+  perguntasRespondidas = {};
+  indice = 0; pontuacao = 0;
+  questionEl.textContent = ''; answersEl.innerHTML = ''; feedbackEl.textContent = '';
+  telaInicial.style.display = 'flex';
+  telaInicial.style.opacity = 1;
+  quizEl.style.display = 'none';
+  professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
+}
+
+/* ============== ACESSIBILIDADE / INIT ============== */
+window.addEventListener('load', ()=>{
+  // se não tiver perguntas, adiciona exemplo para teste
+  if(!perguntas.length){
+    perguntas = [
+      { pergunta: "Qual é a capital do Brasil?", opcoes:["São Paulo","Rio de Janeiro","Brasília"], certa:2 },
+      { pergunta: "2 + 2 = ?", opcoes:["3","4","5"], certa:1 },
+      { pergunta: "Água é composta por?", opcoes:["H2O","CO2","O2"], certa:0 }
+    ];
+    salvarPerguntas();
+    atualizarCadastro();
+  } else {
+    atualizarCadastro();
   }
 });
 
-/* Persist perguntas (already handled), do not persist respostasRespondidas by default.
-   If you want to persist responses across reloads, uncomment the code below:
-
-// window.addEventListener('beforeunload', ()=> {
-//   localStorage.setItem('respostasSalvas', JSON.stringify(perguntasRespondidas));
-// });
-// window.addEventListener('load', ()=> {
-//   const raw = localStorage.getItem('respostasSalvas');
-//   if(raw) perguntasRespondidas = JSON.parse(raw);
-// });
-
-*/
-
-/* Accessibility helpers: focus management (small) */
-answersEl.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' || e.key === ' ') {
-    const btn = document.activeElement;
-    if(btn && btn.classList.contains('answer') && !btn.disabled) btn.click();
-  }
+/* permite fechar painel com ESC */
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){ boxCadastro.style.display = 'none'; btnSair.style.display = 'none'; document.getElementById('professor-login').style.display = 'flex'; }
 });
-
 </script>
 </body>
 </html>
