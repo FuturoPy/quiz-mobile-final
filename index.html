@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Quiz Escolar — App</title>
+<style>
+/* ===========================
+   Estilos gerais / iPhone13
+   ===========================
+   iPhone 13 logical size: 390x844 (DPR 3)
+   This layout targets a vertical app-like UX.
+*/
+:root{
+  --bg:#000;
+  --card-bg: rgba(0,0,0,0.55);
+  --accent:#00ffcc;
+  --good:#00ff99;
+  --bad:#ff7b7b;
+  --glass: rgba(255,255,255,0.04);
+  --glass-2: rgba(255,255,255,0.06);
+  --text:#fff;
+  --radius:14px;
+  --gap:12px;
+  --touch:56px; /* preferred touch target */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --font: "Comic Sans MS", Arial, sans-serif;
+}
+
+/* Reset */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow:hidden;
+}
+
+/* ---------- Tela inicial full-screen ---------- */
+#tela-inicial{
+  position:fixed; inset:0;
+  background-image: url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/inico%20de%20tela.png');
+  background-size:cover; background-position:center;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .45s ease;
+  z-index:10;
+  padding-top: calc(var(--safe-top) + 10px);
+}
+#particles{ position:fixed; inset:0; pointer-events:none; z-index:11; }
+
+/* Start button (app style) */
+#start-btn{
+  position:relative;
+  z-index:12;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border:2px solid rgba(255,255,255,0.08);
+  padding:14px 34px;
+  border-radius:28px;
+  font-size:20px;
+  color:var(--text);
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+}
+#start-btn:active{ transform:translateY(2px) }
+
+/* ---------- App container ---------- */
+.app {
+  position:fixed; inset:0;
+  display:flex; flex-direction:column; align-items:center;
+  padding: calc(var(--safe-top) + 8px) 12px calc(var(--safe-bottom) + 12px);
+  gap:12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.18));
+  z-index:5;
+  overflow:hidden;
+}
+
+/* Header (professora + title) */
+.header {
+  width:100%;
+  display:flex; align-items:center; justify-content:center;
+  gap:12px;
+}
+.professor {
+  width:120px; height:150px;
+  background-size:contain; background-repeat:no-repeat; background-position:bottom center;
+  border-radius:12px;
+  flex-shrink:0;
+  transition:transform .25s ease;
+}
+.title {
+  flex:1;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  letter-spacing:0.4px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+/* Main card (quadro) - centered and touch-friendly */
+.card {
+  width:100%;
+  max-width:390px; /* match iPhone 13 logical width */
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 18px;
+  padding:16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.04);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+
+/* pergunta */
+#question {
+  width:100%;
+  font-size:18px;
+  line-height:1.25;
+  text-align:center;
+  padding:8px 6px;
+  min-height:56px;
+  color:var(--text);
+}
+
+/* alternativas - stacked, touch targets bigger */
+#answers{ width:100%; display:flex; flex-direction:column; gap:10px; }
+.answer {
+  width:100%;
+  height: var(--touch);
+  display:flex; align-items:center; justify-content:center;
+  background:var(--glass);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.06);
+  color:var(--text);
+  font-size:16px;
+  padding:8px 12px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease;
+  user-select:none;
+}
+.answer:active{ transform:translateY(1px) }
+.answer.disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
+.answer.selected{ box-shadow:0 6px 18px rgba(0,0,0,0.6); }
+.answer.correct{ color:var(--good); border-color: rgba(0,255,153,0.18); font-weight:700; }
+.answer.wrong{ color:var(--bad); border-color: rgba(255,123,123,0.12); font-weight:700; }
+
+/* feedback */
+.feedback { min-height:20px; font-size:17px; margin-top:6px; }
+
+/* controls row */
+.controls {
+  width:100%;
+  max-width:390px;
+  display:flex; justify-content:space-between; gap:8px;
+  margin-top:6px;
+}
+.control-btn {
+  flex:1;
+  height:48px;
+  border-radius:12px;
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.04);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  font-weight:600;
+  user-select:none;
+}
+
+/* pequeno painel do professor (login/cadastro) */
+.prof-panel {
+  position:fixed; left:50%; transform:translateX(-50%);
+  top:8px;
+  width:320px; max-width:94vw;
+  background: rgba(0,0,0,0.6);
+  border-radius:12px; padding:8px;
+  display:flex; gap:8px; align-items:center; z-index:40;
+  border:1px solid rgba(255,255,255,0.04);
+}
+.prof-panel input{ padding:8px; border-radius:8px; border:none; width:65%; background:rgba(255,255,255,0.02); color:var(--text); }
+.prof-panel button{ padding:8px 10px; border-radius:8px; border:none; cursor:pointer; background:var(--accent); color:#000; font-weight:700; }
+
+/* cadastro painel (popup) */
+#cadastro-perguntas {
+  position:fixed; top:56px; left:50%; transform:translateX(-50%);
+  width:320px; max-width:94vw;
+  background: rgba(0,0,0,0.75);
+  border-radius:12px; padding:12px;
+  z-index:50;
+  display:none; flex-direction:column; gap:8px;
+  border:1px solid rgba(255,255,255,0.04);
+}
+#cadastro-perguntas input, #cadastro-perguntas select { padding:10px; border-radius:8px; border:none; background:rgba(255,255,255,0.02); color:var(--text); width:100%; }
+
+/* tela final */
+#tela-fim {
+  position:fixed; inset:0; z-index:70;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9));
+  color:var(--text);
+}
+
+/* Responsividade extra small */
+@media (max-width:400px){
+  .professor{ width:100px; height:130px }
+  .title{ font-size:18px }
+  .card{ padding:12px }
+  #question{ font-size:16px }
+  .answer{ height:50px; font-size:15px }
+  .controls{ gap:6px }
+  .control-btn{ height:44px; font-size:14px }
+}
+
+/* -------- Compact mode (fidelity to original) --------
+   If you later want "fiel ao tamanho original", add the class .compact to body
+   and tweak sizes (kept commented for quick reference).
+*/
+/*
+body.compact .professor { width:140px; height:180px; }
+body.compact .card { max-width:600px; border-radius:14px; }
+body.compact .answer { height:48px; font-size:18px; }
+*/
+</style>
+</head>
+<body>
+
+<!-- Tela inicial -->
+<div id="tela-inicial">
+  <canvas id="particles"></canvas>
+  <button id="start-btn">COMEÇAR</button>
+</div>
+
+<!-- App main -->
+<div class="app" id="app" style="display:none;">
+
+  <!-- professor header + title -->
+  <div class="header">
+    <div class="professor" id="professor" style="background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png')"></div>
+    <div class="title">Quiz Escolar 🎓</div>
+  </div>
+
+  <!-- Card (quadro) -->
+  <div class="card" role="main" aria-live="polite">
+    <div id="question" aria-label="Pergunta">...</div>
+    <div id="answers" aria-label="Alternativas"></div>
+    <div id="feedback" class="feedback" aria-hidden="true"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" style="max-width:390px;">
+    <div class="control-btn" id="btn-voltar">◀ Voltar</div>
+    <div class="control-btn" id="btn-avancar">Avançar ▶</div>
+    <div class="control-btn" id="btn-terminar">Terminar</div>
+  </div>
+
+</div>
+
+<!-- professor login panel -->
+<div class="prof-panel" id="prof-panel">
+  <input id="senha-professor" type="password" placeholder="Senha professor" />
+  <button id="entrar-prof">Entrar</button>
+</div>
+
+<!-- cadastro perguntas (popup) -->
+<div id="cadastro-perguntas">
+  <h4 style="margin:0 0 4px 0">Adicionar Pergunta</h4>
+  <input id="nova-pergunta" placeholder="Pergunta" />
+  <input id="alt1" placeholder="Alternativa 1" />
+  <input id="alt2" placeholder="Alternativa 2" />
+  <input id="alt3" placeholder="Alternativa 3" />
+  <select id="certa">
+    <option value="0">Alternativa 1</option>
+    <option value="1">Alternativa 2</option>
+    <option value="2">Alternativa 3</option>
+  </select>
+  <button id="btn-add">Adicionar</button>
+  <button id="btn-fechar" style="margin-top:6px;background:#ff6666;color:#000;font-weight:700">Fechar</button>
+</div>
+
+<!-- tela fim placeholder (aparecerá via JS) -->
+<div id="tela-fim" style="display:none;"></div>
+
+<script>
+/* ===========================
+   JavaScript — App logic
+   =========================== */
+
+/* Partículas (leve) */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+let mouse = {x:null,y:null};
+window.addEventListener('mousemove', e=> { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+class Particle {
+  constructor(){
+    this.x = Math.random()*canvas.width;
+    this.y = Math.random()*canvas.height;
+    this.r = Math.random()*1.8 + 0.6;
+    this.vx = (Math.random()-0.5)*0.3;
+    this.vy = (Math.random()-0.5)*0.3;
+    this.alpha = Math.random()*0.5 + 0.15;
+  }
+  update(){
+    this.x += this.vx; this.y += this.vy;
+    if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
+    if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    // mouse interaction
+    if(mouse.x && mouse.y){
+      const dx = mouse.x - this.x; const dy = mouse.y - this.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if(d < 120){ this.alpha = Math.min(1, 0.5 + (120-d)/240); }
+      else this.alpha = Math.max(0.15, this.alpha*0.995);
+    }
+  }
+  draw(){ ctx.fillStyle = `rgba(255,255,200,${this.alpha})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); }
+}
+const parts = Array.from({length:60}, ()=> new Particle());
+function animParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  parts.forEach(p=>{ p.update(); p.draw(); });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+/* Assets & state */
+const imgFrames = [
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png",
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%202.png",
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%203.png"
+];
+const imgCerta = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/joinhaa.png";
+const imgErrada = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/errada.png";
+
+let perguntas = []; // array of {pergunta, opcoes:[...], certa: index}
+let indice = 0;
+let pontuacao = 0;
+let perguntasRespondidas = {}; // { idx: {choice, correct} }
+
+// DOM refs
+const appEl = document.getElementById('app');
+const startBtn = document.getElementById('start-btn');
+const telaInicial = document.getElementById('tela-inicial');
+const professorEl = document.getElementById('professor');
+const questionEl = document.getElementById('question');
+const answersEl = document.getElementById('answers');
+const feedbackEl = document.getElementById('feedback');
+const btnVoltar = document.getElementById('btn-voltar');
+const btnAvancar = document.getElementById('btn-avancar');
+const btnTerminar = document.getElementById('btn-terminar');
+
+const profPanel = document.getElementById('prof-panel');
+const entrarProf = document.getElementById('entrar-prof');
+const cadastro = document.getElementById('cadastro-perguntas');
+const btnAdd = document.getElementById('btn-add');
+const btnFechar = document.getElementById('btn-fechar');
+
+const senhaInput = document.getElementById('senha-professor');
+const novaPerguntaInput = document.getElementById('nova-pergunta');
+const alt1 = document.getElementById('alt1');
+const alt2 = document.getElementById('alt2');
+const alt3 = document.getElementById('alt3');
+const selectCerta = document.getElementById('certa');
+
+/* Load saved perguntas from localStorage */
+function carregarPerguntas(){
+  try {
+    const raw = localStorage.getItem('perguntasQuiz');
+    if(raw) perguntas = JSON.parse(raw);
+  } catch(e){ perguntas = []; }
+  // if no perguntas, we can seed sample ones (optional)
+  if(!perguntas || perguntas.length === 0){
+    // example seed (comment out if you don't want)
+    perguntas = [
+      { pergunta: "Qual é a capital do Brasil?", opcoes:["São Paulo","Brasília","Rio"], certa:1 },
+      { pergunta: "2 + 2 = ?", opcoes:["3","4","5"], certa:1 }
+    ];
+    localStorage.setItem('perguntasQuiz', JSON.stringify(perguntas));
+  }
+}
+carregarPerguntas();
+
+/* Save perguntas */
+function salvarPerguntas(){ localStorage.setItem('perguntasQuiz', JSON.stringify(perguntas)); }
+
+/* professor login */
+entrarProf.addEventListener('click', ()=>{
+  if(senhaInput.value === "2702"){
+    cadastro.style.display = "flex";
+    profPanel.style.display = "none";
+  } else alert("Senha incorreta");
+});
+btnFechar.addEventListener('click', ()=>{ cadastro.style.display='none'; profPanel.style.display='flex'; });
+
+btnAdd.addEventListener('click', ()=>{
+  const p = novaPerguntaInput.value.trim();
+  const o1 = alt1.value.trim();
+  const o2 = alt2.value.trim();
+  const o3 = alt3.value.trim();
+  const c = parseInt(selectCerta.value);
+  if(!p || !o1 || !o2 || !o3) return alert('Preencha todos os campos');
+  perguntas.push({ pergunta: p, opcoes: [o1,o2,o3], certa: c });
+  salvarPerguntas();
+  novaPerguntaInput.value=''; alt1.value=''; alt2.value=''; alt3.value='';
+  alert('Pergunta adicionada');
+});
+
+/* Write text animation (professora) */
+let writeInterval = null;
+function escreverNoQuadro(el, texto, speed = 40){
+  el.textContent = "";
+  if(writeInterval) clearInterval(writeInterval);
+  return new Promise(resolve=>{
+    let i=0, frame = 0;
+    writeInterval = setInterval(()=>{
+      el.textContent += texto[i] ?? "";
+      // animate professor frames
+      professorEl.style.backgroundImage = `url(${imgFrames[frame])}`;
+      frame = (frame + 1) % imgFrames.length;
+      i++;
+      if(i >= texto.length){
+        clearInterval(writeInterval);
+        writeInterval = null;
+        professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
+        resolve();
+      }
+    }, speed);
+  });
+}
+
+/* Render current question */
+async function mostrarPergunta(){
+  if(!perguntas || perguntas.length === 0) {
+    questionEl.textContent = "Nenhuma pergunta cadastrada.";
+    answersEl.innerHTML = "";
+    return;
+  }
+  const q = perguntas[indice];
+  answersEl.innerHTML = "";
+  feedbackEl.textContent = "";
+  // animate writing
+  await escreverNoQuadro(questionEl, q.pergunta, 28);
+
+  // build answer buttons
+  q.opcoes.forEach((opt, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'answer';
+    btn.textContent = opt;
+    btn.dataset.idx = idx;
+    // if answered before -> disable and show selection
+    const resp = perguntasRespondidas[indice];
+    if(resp){
+      btn.classList.add('disabled');
+      btn.disabled = true;
+      if(resp.choice === idx){
+        btn.classList.add('selected');
+        btn.classList.add(resp.correct ? 'correct' : 'wrong');
+      }
+    } else {
+      btn.addEventListener('click', ()=> checkAnswer(idx === q.certa, idx) );
+    }
+    answersEl.appendChild(btn);
+  });
+
+  // show feedback if previously answered
+  const salvo = perguntasRespondidas[indice];
+  if(salvo){
+    if(salvo.correct){
+      feedbackEl.textContent = "Muito bem!";
+      feedbackEl.className = "feedback";
+      feedbackEl.style.color = "#00ff99";
+      professorEl.style.backgroundImage = `url(${imgCerta})`;
+    } else {
+      feedbackEl.textContent = "Tente novamente!";
+      feedbackEl.className = "feedback";
+      feedbackEl.style.color = "#ff7b7b";
+      professorEl.style.backgroundImage = `url(${imgErrada})`;
+    }
+  } else {
+    feedbackEl.textContent = "";
+    professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
+  }
+
+  // accessibility focus on first answer
+  const firstBtn = answersEl.querySelector('button:not([disabled])');
+  if(firstBtn) firstBtn.setAttribute('tabindex', '0');
+}
+
+/* Handle answer click */
+function checkAnswer(isCorrect, choiceIndex){
+  perguntasRespondidas[indice] = { choice: choiceIndex, correct: isCorrect };
+  // disable current buttons
+  const btns = answersEl.querySelectorAll('button.answer');
+  btns.forEach(b => { b.disabled = true; b.classList.add('disabled'); });
+
+  // mark selection visually
+  btns.forEach(b=>{
+    const idx = parseInt(b.dataset.idx);
+    if(idx === choiceIndex){
+      b.classList.add('selected');
+      if(isCorrect) b.classList.add('correct');
+      else b.classList.add('wrong');
+    }
+  });
+
+  // feedback and animation
+  if(isCorrect){
+    pontuacao++;
+    feedbackEl.textContent = "Muito bem!";
+    feedbackEl.style.color = "#00ff99";
+    professorEl.style.backgroundImage = `url(${imgCerta})`;
+    professorEl.style.transform = "translateY(-6px)";
+    setTimeout(()=> professorEl.style.transform = "", 600);
+  } else {
+    feedbackEl.textContent = "Tente novamente!";
+    feedbackEl.style.color = "#ff7b7b";
+    professorEl.style.backgroundImage = `url(${imgErrada})`;
+    professorEl.style.transform = "translateX(-6px)";
+    setTimeout(()=> professorEl.style.transform = "", 550);
+  }
+}
+
+/* Navigation */
+btnAvancar.addEventListener('click', ()=>{
+  if(indice < perguntas.length - 1){
+    indice++;
+    mostrarPergunta();
+  }
+});
+btnVoltar.addEventListener('click', ()=>{
+  if(indice > 0){
+    indice--;
+    mostrarPergunta();
+  }
+});
+btnTerminar.addEventListener('click', mostrarFim);
+
+/* Show finish */
+function mostrarFim(){
+  appEl.style.display = 'none';
+  const fim = document.getElementById('tela-fim');
+  fim.innerHTML = '';
+  fim.style.display = 'flex';
+  fim.style.flexDirection = 'column';
+  fim.style.alignItems = 'center';
+  fim.style.justifyContent = 'center';
+  fim.style.gap = '12px';
+  fim.innerHTML = `<div style="font-size:22px;font-weight:700">Quiz finalizado!</div>
+                   <div style="font-size:18px">Acertos: <b>${pontuacao} de ${perguntas.length}</b></div>`;
+  if(pontuacao === perguntas.length){
+    const img = document.createElement('img');
+    img.src = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-14%20003933.png";
+    img.style.width = '180px';
+    fim.appendChild(img);
+    const t = document.createElement('div');
+    t.innerHTML = "<b>Você foi 10!</b>";
+    t.style.fontSize = '20px';
+    fim.appendChild(t);
+  }
+  const btn = document.createElement('button');
+  btn.textContent = 'Reiniciar';
+  btn.style.marginTop = '14px';
+  btn.style.padding = '10px 18px';
+  btn.style.borderRadius = '12px';
+  btn.style.border = 'none';
+  btn.style.fontWeight = '700';
+  btn.onclick = () => {
+    fim.style.display = 'none';
+    resetarJogo();
+  };
+  fim.appendChild(btn);
+}
+
+/* Reset */
+function resetarJogo(){
+  perguntasRespondidas = {};
+  indice = 0; pontuacao = 0;
+  appEl.style.display = 'flex';
+  mostrarPergunta();
+}
+
+/* Start app */
+startBtn.addEventListener('click', ()=>{
+  telaInicial.style.opacity = 0;
+  setTimeout(()=> telaInicial.style.display = 'none', 420);
+  appEl.style.display = 'flex';
+  // set up initial professor image
+  professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
+  mostrarPergunta();
+});
+
+/* ESC to close professor panel (like previous behavior) */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    cadastro.style.display = 'none';
+    profPanel.style.display = 'flex';
+  }
+});
+
+/* Persist perguntas (already handled), do not persist respostasRespondidas by default.
+   If you want to persist responses across reloads, uncomment the code below:
+
+// window.addEventListener('beforeunload', ()=> {
+//   localStorage.setItem('respostasSalvas', JSON.stringify(perguntasRespondidas));
+// });
+// window.addEventListener('load', ()=> {
+//   const raw = localStorage.getItem('respostasSalvas');
+//   if(raw) perguntasRespondidas = JSON.parse(raw);
+// });
+
+*/
+
+/* Accessibility helpers: focus management (small) */
+answersEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' || e.key === ' ') {
+    const btn = document.activeElement;
+    if(btn && btn.classList.contains('answer') && !btn.disabled) btn.click();
+  }
+});
+
+</script>
+</body>
+</html>
